@@ -22,7 +22,7 @@ namespace MusicSelect
     [Activity(Label = "MusicSelect", MainLauncher = true, Icon = "@drawable/icon", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : Activity
     {
-        private const string MusicDirectory = @"/sdcard/Documents/Music";
+        private string MusicDirectory;
         private MediaPlayer player;
         public string CurrentMusic;
         public static MainActivity CurrentActivity { get; set; }
@@ -66,147 +66,177 @@ namespace MusicSelect
 
         private void ShowNotification(string title, string message)
         {
-            try
-            {
-                var mBuilder =
-                    new Notification.Builder(this)
-                    .SetSmallIcon(Resource.Drawable.Icon)
-                    .SetContentTitle(title)
-                    .SetContentText(message);
+            var mBuilder =
+                new Notification.Builder(this)
+                .SetSmallIcon(Resource.Drawable.Icon)
+                .SetContentTitle(title)
+                .SetContentText(message);
 
-                var resultIntent = new Intent(this, typeof(MainActivity));
-                var stackBuilder = TaskStackBuilder.Create(this);
-                stackBuilder.AddParentStack(this);
-                stackBuilder.AddNextIntent(resultIntent);
-                var resultPendingIntent = stackBuilder.GetPendingIntent(1, PendingIntentFlags.UpdateCurrent);
-                mBuilder.SetContentIntent(resultPendingIntent);
-                var mNotificationManager = (NotificationManager)GetSystemService(NotificationService);
-                mNotificationManager.Notify(NextNotificationId(), mBuilder.Build());
-            }
-            catch (Exception e)
-            {
-                //TODO: RETIRAR ISSO E POR NO CHAMADOR!
-                Toast.MakeText(this, $"player.Completion.Error: {e}", ToastLength.Long).Show();
-            }
+            var resultIntent = new Intent(this, typeof(MainActivity));
+            var stackBuilder = TaskStackBuilder.Create(this);
+            stackBuilder.AddParentStack(this);
+            stackBuilder.AddNextIntent(resultIntent);
+            var resultPendingIntent = stackBuilder.GetPendingIntent(1, PendingIntentFlags.UpdateCurrent);
+            mBuilder.SetContentIntent(resultPendingIntent);
+            var mNotificationManager = (NotificationManager)GetSystemService(NotificationService);
+            mNotificationManager.Notify(NextNotificationId(), mBuilder.Build());
         }
 
         protected override void OnCreate(Bundle bundle)
         {
-            base.OnCreate(bundle);
-
-            CurrentActivity = this;
-
-            SetContentView(Resource.Layout.Main);
-
-            GetLocationPermission();
-
-            player = new MediaPlayer();
-
-            player.Prepared += async (sender, args) =>
-            {
-                await UpdateScreenInfoAsync();
-            };
-
-            player.Completion += (sender, args) =>
-            {
-                try
-                {
-                    Beep();
-                }
-                catch (Exception e)
-                {
-                    //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
-                    Toast.MakeText(this, $"player.Completion.Error: {e}", ToastLength.Long).Show();
-                }
-            };
-
-            player.TimedMetaDataAvailable += (sender, args) =>
-            {
-                try
-                {
-                    Beep();
-                    var id3Array = args.Data.GetMetaData();
-                    var id3String = System.Text.Encoding.UTF8.GetString(id3Array);
-                    ShowNotification($"{Title}:{_currentNotificationId}", $"TimedMetaDataAvailable: {id3String}");
-                }
-                catch (Exception e)
-                {
-                    //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
-                    Toast.MakeText(this, $"player.TimedMetaDataAvailable.Error: {e}", ToastLength.Long).Show();
-                }
-            };
-
-            player.TimedText += (sender, args) =>
-            {
-                try
-                {
-                    Beep();
-                    var text = args.Text?.Text;
-                    ShowNotification($"{Title}:{_currentNotificationId}", $"TimedText: {text}");
-                }
-                catch (Exception e)
-                {
-                    //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
-                    Toast.MakeText(this, $"player.TimedText.Error: {e}", ToastLength.Long).Show();
-                }
-            };
-
-            buttonPlayPause = FindViewById<Button>(Resource.Id.buttonPlayPause);
-            buttonResolve = FindViewById<Button>(Resource.Id.buttonResolve);
-            buttonDelete = FindViewById<Button>(Resource.Id.buttonDelete);
-            buttonSelect = FindViewById<Button>(Resource.Id.buttonSelect);
-
-            imageViewArt = FindViewById<ImageView>(Resource.Id.imageViewArt);
-            textViewTitle = FindViewById<TextView>(Resource.Id.textViewTitle);
-            textViewArtist = FindViewById<TextView>(Resource.Id.textViewArtist);
-            textViewDuraction = FindViewById<TextView>(Resource.Id.textViewDuraction);
-            textViewBitrate = FindViewById<TextView>(Resource.Id.textViewBitrate);
-            seekBarTime = FindViewById<SeekBar>(Resource.Id.seekBarTime);
-
-            buttonPlayPause.Click += (sender, args) =>
-            {
-                if (player.IsPlaying)
-                    player.Pause();
-                else
-                {
-                    StartPlayer();
-                }
-            };
-
-            buttonResolve.Click += (sender, args) =>
-            {
-                StopPlayer();
-                MoveCurrentMusic("Resolver");
-                UpdateCurrentMusic();
-                StartPlayer();
-            };
-
-            buttonDelete.Click += (sender, args) =>
-            {
-                StopPlayer();
-                MoveCurrentMusic("Excluir");
-                UpdateCurrentMusic();
-                StartPlayer();
-            };
-
-            buttonSelect.Click += (sender, args) =>
-            {
-                StopPlayer();
-                MoveCurrentMusic("Selecionadas");
-                UpdateCurrentMusic();
-                StartPlayer();
-            };
-
-            UpdateCurrentMusic();
-
             try
             {
+                base.OnCreate(bundle);
+
+                CurrentActivity = this;
+
+                SetContentView(Resource.Layout.Main);
+
+                GetLocationPermission();
+
+                player = new MediaPlayer();
+
+                player.Prepared += async (sender, args) =>
+                {
+                    await UpdateScreenInfoAsync();
+                };
+
+                player.Completion += (sender, args) =>
+                {
+                    try
+                    {
+                        Beep();
+                    }
+                    catch (Exception e)
+                    {
+                        //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
+                        Toast.MakeText(this, $"player.Completion.Error: {e}", ToastLength.Long).Show();
+                        ShowDialog($"player.Completion.Error: {e}", "Erro");
+                    }
+                };
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+                {
+                    player.TimedMetaDataAvailable += (sender, args) =>
+                    {
+                        try
+                        {
+                            Beep();
+                            var id3Array = args.Data.GetMetaData();
+                            var id3String = System.Text.Encoding.UTF8.GetString(id3Array);
+                            ShowNotification($"{Title}:{_currentNotificationId}", $"TimedMetaDataAvailable: {id3String}");
+                        }
+                        catch (Exception e)
+                        {
+                            //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
+                            Toast.MakeText(this, $"player.TimedMetaDataAvailable.Error: {e}", ToastLength.Long).Show();
+                            ShowDialog($"player.TimedMetaDataAvailable.Error: {e}", "Erro");
+                        }
+                    };
+                }
+
+                player.TimedText += (sender, args) =>
+                {
+                    try
+                    {
+                        Beep();
+                        var text = args.Text?.Text;
+                        ShowNotification($"{Title}:{_currentNotificationId}", $"TimedText: {text}");
+                    }
+                    catch (Exception e)
+                    {
+                        //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
+                        Toast.MakeText(this, $"player.TimedText.Error: {e}", ToastLength.Long).Show();
+                        ShowDialog($"player.TimedText.Error: {e}", "Erro");
+                    }
+                };
+
+                buttonPlayPause = FindViewById<Button>(Resource.Id.buttonPlayPause);
+                buttonResolve = FindViewById<Button>(Resource.Id.buttonResolve);
+                buttonDelete = FindViewById<Button>(Resource.Id.buttonDelete);
+                buttonSelect = FindViewById<Button>(Resource.Id.buttonSelect);
+
+                imageViewArt = FindViewById<ImageView>(Resource.Id.imageViewArt);
+                textViewTitle = FindViewById<TextView>(Resource.Id.textViewTitle);
+                textViewArtist = FindViewById<TextView>(Resource.Id.textViewArtist);
+                textViewDuraction = FindViewById<TextView>(Resource.Id.textViewDuraction);
+                textViewBitrate = FindViewById<TextView>(Resource.Id.textViewBitrate);
+                seekBarTime = FindViewById<SeekBar>(Resource.Id.seekBarTime);
+
+                buttonPlayPause.Click += (sender, args) =>
+                {
+                    if (player.IsPlaying)
+                        player.Pause();
+                    else
+                    {
+                        StartPlayer();
+                    }
+                };
+
+                buttonResolve.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        StopPlayer();
+                        MoveCurrentMusic("Resolver");
+                        UpdateCurrentMusic();
+                        StartPlayer();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                        ShowDialog(e.ToString(), "Erro");
+                    }
+                };
+
+                buttonDelete.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        StopPlayer();
+                        MoveCurrentMusic("Excluir");
+                        UpdateCurrentMusic();
+                        StartPlayer();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                        ShowDialog(e.ToString(), "Erro");
+                    }
+                };
+
+                buttonSelect.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        StopPlayer();
+                        MoveCurrentMusic("Selecionadas");
+                        UpdateCurrentMusic();
+                        StartPlayer();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                        ShowDialog(e.ToString(), "Erro");
+                    }
+                };
+
+                if (Directory.Exists(@"/sdcard/Documents/Music"))
+                    MusicDirectory = @"/sdcard/Documents/Music";
+                else if (Directory.Exists(@"/storage/external_SD/Music"))
+                    MusicDirectory = @"/storage/external_SD/Music";
+                else
+                    MusicDirectory = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Music");
+
+                UpdateCurrentMusic();
+
                 if (IsBluetoothHeadsetConnected())
                     RegisterMediaButtonEvents();
             }
             catch (Exception e)
             {
-                Toast.MakeText(this, e.ToString(), ToastLength.Long).Show(); //TODO: Retirar caso não haja erro nisso!
+                Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                ShowDialog(e.ToString(), "Erro");
             }
         }
 
@@ -239,6 +269,7 @@ namespace MusicSelect
             catch (Exception e)
             {
                 Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                ShowDialog(e.ToString(), "Erro");
             }
         }
 
@@ -252,6 +283,7 @@ namespace MusicSelect
             catch (Exception e)
             {
                 Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                ShowDialog(e.ToString(), "Erro");
             }
         }
 
@@ -286,14 +318,6 @@ namespace MusicSelect
         {
             if (CurrentMusic != null)
             {
-                //try //TODO: Exclir comentário, caso não seja mais necessário
-                //{
-                //    player.Prepare();
-                //}
-                //catch
-                //{
-                //    // ignored
-                //}
                 player.Start();
                 seekBarTime.Max = player.Duration;
                 playTimer?.Dispose();
@@ -314,6 +338,7 @@ namespace MusicSelect
                             catch (Exception exception)
                             {
                                 Toast.MakeText(this, exception.Message, ToastLength.Long);
+                                ShowDialog(exception.Message, "Erro");
                             }
                         });
                         playTimer.Change(500, Timeout.Infinite);
@@ -331,20 +356,21 @@ namespace MusicSelect
 
         private void GetLocationPermission()
         {
-            if (CheckSelfPermission(Manifest.Permission.ManageDocuments) == Permission.Granted)
-                return;
-            if (CheckSelfPermission(Manifest.Permission.Internet) == Permission.Granted)
-                return;
-            if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
-                return;
-
-
-            RequestPermissions(
-                new[]
-                {
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+            {
+                if (CheckSelfPermission(Manifest.Permission.ManageDocuments) == Permission.Granted)
+                    return;
+                if (CheckSelfPermission(Manifest.Permission.Internet) == Permission.Granted)
+                    return;
+                if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) == Permission.Granted)
+                    return;
+                RequestPermissions(
+                    new[]
+                    {
                     Manifest.Permission.ManageDocuments, Manifest.Permission.Internet,
                     Manifest.Permission.WriteExternalStorage
-                }, 0);
+                    }, 0);
+            }
         }
 
         private void UpdateCurrentMusic()
@@ -421,8 +447,9 @@ namespace MusicSelect
                      var channelCount = mediaFormat.ContainsKey(MediaFormat.KeyChannelCount) ? mediaFormat.GetInteger(MediaFormat.KeyChannelCount) : 0;
                      return $"{sampleRate}Hz {channelCount} canais";
                  }
-                 catch (Exception)
+                 catch (Exception e)
                  {
+                     ShowDialog(e.Message, "Erro");
                      return "";
                  }
              });
@@ -472,8 +499,6 @@ namespace MusicSelect
                 File.Move(CurrentMusic, toFilename);
                 return;
             }
-
-            return;
         }
 
         ~MainActivity()
@@ -486,6 +511,7 @@ namespace MusicSelect
             {
                 //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
                 Toast.MakeText(this, $"~MainActivity.Error: {e}", ToastLength.Long).Show();
+                ShowDialog($"~MainActivity.Error: {e}", "Erro");
             }
         }
     }

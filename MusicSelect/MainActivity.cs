@@ -388,14 +388,26 @@ namespace MusicSelect
             }
 
             var musicCount = musics.Count;
-            var firstMusic = musics.FirstOrDefault();
-            player.SetDataSource(firstMusic);
+            CurrentMusic = musics.FirstOrDefault();
+            player.SetDataSource(CurrentMusic);
             player.SetAudioStreamType(Stream.Music);
-            player.Prepare();
-            CurrentMusic = firstMusic;
+
+            try
+            {
+                player.Prepare();
+            }
+            catch (Exception e)
+            {
+                Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                ShowDialog(e.ToString(), "Erro");
+                StopPlayer();
+                MoveCurrentMusic("Resolver");
+                UpdateCurrentMusic();
+            }
+
             UpdatePictureArt(false);
             Title = "Musics (" + musicCount + ")";
-        }
+            }
 
         private async Task UpdateScreenInfoAsync()
         {

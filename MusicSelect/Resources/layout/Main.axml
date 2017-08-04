@@ -65,7 +65,8 @@
             android:minHeight="25px"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/linearLayout3">
+            android:id="@+id/linearLayout3"
+            android:paddingBottom="4dp">
             <Space
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -82,6 +83,32 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
+            <ToggleButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/toggleButtonDoubleSpeed"
+                android:layout_margin="4dp"
+                android:backgroundTint="#ff00bfff"
+                android:textOn="1X"
+                android:textOff="2X"
+                android:textColor="#000000"
+                android:checked="false" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+            <Button
+                android:background="@drawable/another_version"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:id="@+id/buttonAnotherVersion"
+                android:tint="#fffffaf0"
+                android:layout_margin="4dp"
+                android:backgroundTint="#ff00bfff" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />          
             <Button
                 android:background="@drawable/resolve"
                 android:layout_width="32dp"

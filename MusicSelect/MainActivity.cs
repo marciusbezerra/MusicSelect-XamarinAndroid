@@ -35,7 +35,8 @@ namespace MusicSelect
 		private TextView textViewBitrate;
 		private Button buttonPlayPause;
 		private ToggleButton toggleButtonDoubleSpeed;
-		private Button buttonAnotherVersion;
+        private Button buttonListenLater;
+        private Button buttonAnotherVersion;
 		private Button buttonResolve;
 		private Button buttonDelete;
 		private Button buttonSelect;
@@ -155,6 +156,7 @@ namespace MusicSelect
 
 				buttonPlayPause = FindViewById<Button>(Resource.Id.buttonPlayPause);
 				toggleButtonDoubleSpeed = FindViewById<ToggleButton>(Resource.Id.toggleButtonDoubleSpeed);
+				buttonListenLater = FindViewById<Button>(Resource.Id.buttonListenLater);
                 buttonAnotherVersion = FindViewById<Button>(Resource.Id.buttonAnotherVersion);
                 buttonResolve = FindViewById<Button>(Resource.Id.buttonResolve);
 				buttonDelete = FindViewById<Button>(Resource.Id.buttonDelete);
@@ -183,6 +185,22 @@ namespace MusicSelect
 					newPlaybackParams.SetSpeed((sender as ToggleButton).Checked ? 2f: 1f);
 					player.PlaybackParams = newPlaybackParams;
 				};
+
+                buttonListenLater.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        StopPlayer();
+                        MoveCurrentMusic("ListenLater");
+                        UpdateCurrentMusic();
+                        StartPlayer();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+                        ShowDialog(e.ToString(), "Erro");
+                    }
+                };
 
                 buttonAnotherVersion.Click += (sender, args) =>
                 {

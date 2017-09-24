@@ -126,23 +126,29 @@ namespace MusicSelect
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f05000d
-			public const int buttonAnotherVersion = 2131034125;
+			// aapt resource value: 0x7f050010
+			public const int buttonAnotherVersion = 2131034128;
+			
+			// aapt resource value: 0x7f050012
+			public const int buttonDelete = 2131034130;
 			
 			// aapt resource value: 0x7f05000f
-			public const int buttonDelete = 2131034127;
+			public const int buttonListenLater = 2131034127;
 			
-			// aapt resource value: 0x7f05000c
-			public const int buttonListenLater = 2131034124;
+			// aapt resource value: 0x7f05000d
+			public const int buttonPlayPause = 2131034125;
+			
+			// aapt resource value: 0x7f050011
+			public const int buttonResolve = 2131034129;
+			
+			// aapt resource value: 0x7f050013
+			public const int buttonSelect = 2131034131;
+			
+			// aapt resource value: 0x7f050009
+			public const int checkBoxAutoSkip = 2131034121;
 			
 			// aapt resource value: 0x7f05000a
-			public const int buttonPlayPause = 2131034122;
-			
-			// aapt resource value: 0x7f05000e
-			public const int buttonResolve = 2131034126;
-			
-			// aapt resource value: 0x7f050010
-			public const int buttonSelect = 2131034128;
+			public const int checkBoxNoVoice = 2131034122;
 			
 			// aapt resource value: 0x7f050002
 			public const int imageViewArt = 2131034114;
@@ -153,14 +159,17 @@ namespace MusicSelect
 			// aapt resource value: 0x7f050001
 			public const int linearLayout2 = 2131034113;
 			
-			// aapt resource value: 0x7f050009
-			public const int linearLayout3 = 2131034121;
+			// aapt resource value: 0x7f05000c
+			public const int linearLayout3 = 2131034124;
 			
 			// aapt resource value: 0x7f050003
 			public const int linearLayout4 = 2131034115;
 			
 			// aapt resource value: 0x7f050008
-			public const int seekBarTime = 2131034120;
+			public const int linearLayout5 = 2131034120;
+			
+			// aapt resource value: 0x7f05000b
+			public const int seekBarTime = 2131034123;
 			
 			// aapt resource value: 0x7f050005
 			public const int textViewArtist = 2131034117;
@@ -174,8 +183,8 @@ namespace MusicSelect
 			// aapt resource value: 0x7f050004
 			public const int textViewTitle = 2131034116;
 			
-			// aapt resource value: 0x7f05000b
-			public const int toggleButtonDoubleSpeed = 2131034123;
+			// aapt resource value: 0x7f05000e
+			public const int toggleButtonDoubleSpeed = 2131034126;
 			
 			static Id()
 			{

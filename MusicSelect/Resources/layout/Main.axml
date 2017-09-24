@@ -27,7 +27,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="left|bottom"
-                android:background ="#88676767"
+                android:background="#88676767"
                 android:padding="5dp"
                 android:id="@+id/linearLayout4">
                 <TextView
@@ -54,6 +54,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/textViewBitrate" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/linearLayout5">
+                    <CheckBox
+                        android:text="Auto skip (Listen later)"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:id="@+id/checkBoxAutoSkip" />
+                    <CheckBox
+                        android:text="No voice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:id="@+id/checkBoxNoVoice" />
+                </LinearLayout>
                 <SeekBar
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -73,7 +89,7 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
             <Button
-              android:background="@drawable/play_pause"
+                android:background="@drawable/play_pause"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:id="@+id/buttonPlayPause"

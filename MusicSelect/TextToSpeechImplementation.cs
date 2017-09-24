@@ -20,11 +20,7 @@ namespace MusicSelect
         {
             toSpeak = text;
             if (speaker == null)
-            {
-                speaker = new TextToSpeech(context, this, "com.google.android.tts");
-                if (speaker.IsLanguageAvailable(Locale.English) == LanguageAvailableResult.Available)
-                    speaker.SetLanguage(Locale.Uk);
-            }
+                speaker = new TextToSpeech(context, this);
             else
             {
                 var p = new Dictionary<string, string>();

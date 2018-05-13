@@ -3,9 +3,11 @@ using Android.App;
 using Android.Bluetooth;
 using Android.Content;
 using Android.Content.PM;
+using Android.Database;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
+using Android.Provider;
 using Android.Widget;
 using Java.Lang;
 using System;
@@ -47,6 +49,14 @@ namespace MusicSelect
         private Timer playTimer;
         private AudioManager appAudioService;
         private ComponentName appComponentName;
+
+
+        private string[] MusicDirs =
+        {
+            @"/sdcard/Documents/Music",
+            @"/storage/external_SD/Music",
+            @"/storage/5800-E221/music",
+        };
 
         private int NextNotificationId()
         {
@@ -324,12 +334,14 @@ namespace MusicSelect
                     }
                 };
 
-                if (Directory.Exists(@"/sdcard/Documents/Music"))
-                    MusicDirectory = @"/sdcard/Documents/Music";
-                else if (Directory.Exists(@"/storage/external_SD/Music"))
-                    MusicDirectory = @"/storage/external_SD/Music";
-                else
-                    MusicDirectory = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Music");
+                foreach (var musicDir in MusicDirs)
+                {
+                    if (HasMusicIn(musicDir))
+                    {
+                        MusicDirectory = musicDir;
+                        break;
+                    }
+                }
 
                 UpdateCurrentMusic();
 
@@ -343,11 +355,44 @@ namespace MusicSelect
             }
         }
 
+        private bool HasMusicIn(string diretory)
+        {
+            return Directory.Exists(diretory) && 
+                (Directory.GetFiles(diretory, "*.mp3").Any() || Directory.GetFiles(diretory, "*.MP3").Any());
+        }
+
         private static bool IsBluetoothHeadsetConnected()
         {
             var bluetoothAdapter = BluetoothAdapter.DefaultAdapter;
             return bluetoothAdapter != null && bluetoothAdapter.IsEnabled
                    && bluetoothAdapter.GetProfileConnectionState(ProfileType.Headset) == ProfileState.Connected;
+        }
+
+        public static string GetBaseFolderPath(bool getSDPath = false)
+        {
+            string baseFolderPath = "";
+
+            try
+            {
+                Context context = Application.Context;
+                Java.IO.File[] dirs = context.GetExternalFilesDirs(null);
+
+                foreach (Java.IO.File folder in dirs)
+                {
+                    bool IsRemovable = Android.OS.Environment.InvokeIsExternalStorageRemovable(folder);
+                    bool IsEmulated = Android.OS.Environment.InvokeIsExternalStorageEmulated(folder);
+
+                    if (getSDPath ? IsRemovable && !IsEmulated : !IsRemovable && IsEmulated)
+                        baseFolderPath = folder.Path;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetBaseFolderPath caused the follwing exception: {0}", ex);
+            }
+
+            return baseFolderPath;
         }
 
         private static void Beep()

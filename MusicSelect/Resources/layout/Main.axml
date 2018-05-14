@@ -21,7 +21,8 @@
                 android:src="@drawable/technics0"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/imageViewArt" />
+                android:id="@+id/imageViewArt"
+                android:scaleType="centerCrop" />
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
@@ -74,106 +75,106 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/seekBarTime" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:minWidth="25px"
+                    android:minHeight="25px"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/linearLayout3"
+                    android:paddingBottom="4dp">
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/play_pause"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonPlayPause"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <ToggleButton
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:id="@+id/toggleButtonDoubleSpeed"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff"
+                        android:textOn="1X"
+                        android:textOff="2X"
+                        android:textColor="#000000"
+                        android:checked="false" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/later"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonListenLater"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/another_version"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonAnotherVersion"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/resolve"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonResolve"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/delete"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonDelete"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                    <Button
+                        android:background="@drawable/select"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:id="@+id/buttonSelect"
+                        android:tint="#fffffaf0"
+                        android:layout_margin="4dp"
+                        android:backgroundTint="#ff00bfff" />
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+                </LinearLayout>
             </LinearLayout>
         </FrameLayout>
-        <LinearLayout
-            android:orientation="horizontal"
-            android:minWidth="25px"
-            android:minHeight="25px"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/linearLayout3"
-            android:paddingBottom="4dp">
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/play_pause"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonPlayPause"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <ToggleButton
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:id="@+id/toggleButtonDoubleSpeed"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff"
-                android:textOn="1X"
-                android:textOff="2X"
-                android:textColor="#000000"
-                android:checked="false" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/later"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonListenLater"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/another_version"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonAnotherVersion"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/resolve"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonResolve"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/delete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonDelete"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-            <Button
-                android:background="@drawable/select"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:id="@+id/buttonSelect"
-                android:tint="#fffffaf0"
-                android:layout_margin="4dp"
-                android:backgroundTint="#ff00bfff" />
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

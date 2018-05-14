@@ -3,11 +3,9 @@ using Android.App;
 using Android.Bluetooth;
 using Android.Content;
 using Android.Content.PM;
-using Android.Database;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
-using Android.Provider;
 using Android.Widget;
 using Java.Lang;
 using System;
@@ -334,15 +332,6 @@ namespace MusicSelect
                     }
                 };
 
-                foreach (var musicDir in MusicDirs)
-                {
-                    if (HasMusicIn(musicDir))
-                    {
-                        MusicDirectory = musicDir;
-                        break;
-                    }
-                }
-
                 UpdateCurrentMusic();
 
                 if (IsBluetoothHeadsetConnected())
@@ -523,6 +512,8 @@ namespace MusicSelect
 
         private void UpdateCurrentMusic()
         {
+            MusicDirectory = MusicDirs.FirstOrDefault(d => HasMusicIn(d)) ?? MusicDirs.FirstOrDefault();
+
             var musics = Directory.GetFiles(MusicDirectory, "*.mp3").ToList();
 
             musics.AddRange(Directory.GetFiles(MusicDirectory, "*.MP3"));
@@ -634,7 +625,6 @@ namespace MusicSelect
             if (noMusic)
             {
                 imageViewArt.SetImageResource(Resource.Drawable.technics0);
-                imageViewArt.SetAdjustViewBounds(true);
             }
             else
             {
@@ -650,7 +640,6 @@ namespace MusicSelect
                     if (bitmap != null)
                     {
                         imageViewArt.SetImageBitmap(bitmap);
-                        imageViewArt.SetAdjustViewBounds(true);
                     }
                     else
                         ShowRandomAlbumArt();
@@ -666,7 +655,6 @@ namespace MusicSelect
             var imageId = radomInt.Next(1, 15);
             var resourceId = Resources.GetIdentifier($"technics{imageId}", "drawable", PackageName);
             imageViewArt.SetImageResource(resourceId);
-            imageViewArt.SetAdjustViewBounds(true);
         }
 
         private void MoveCurrentMusic(string newFolder, bool hiddenFolder)

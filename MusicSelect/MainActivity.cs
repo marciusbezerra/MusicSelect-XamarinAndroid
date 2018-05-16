@@ -5,6 +5,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.Media;
+using Android.Media.Session;
 using Android.OS;
 using Android.Widget;
 using Java.Lang;
@@ -45,16 +46,18 @@ namespace MusicSelect
 
         private SeekBar seekBarTime;
         private Timer playTimer;
-        private AudioManager appAudioService;
-        private ComponentName appComponentName;
+        //private AudioManager appAudioService;
+        //private ComponentName appComponentName;
 
 
-        private string[] MusicDirs =
+        private readonly string[] MusicDirs =
         {
-            @"/sdcard/Documents/Music",
-            @"/storage/external_SD/Music",
-            @"/storage/5800-E221/music",
+            "/sdcard/Documents/Music",
+            "/storage/external_SD/Music",
+            "/storage/5800-E221/music",
         };
+
+        private MediaSession mediaSession;
 
         private int NextNotificationId()
         {
@@ -346,7 +349,7 @@ namespace MusicSelect
 
         private bool HasMusicIn(string diretory)
         {
-            return Directory.Exists(diretory) && 
+            return Directory.Exists(diretory) &&
                 (Directory.GetFiles(diretory, "*.mp3").Any() || Directory.GetFiles(diretory, "*.MP3").Any());
         }
 
@@ -390,17 +393,64 @@ namespace MusicSelect
             toneG.StartTone(Tone.CdmaAlertCallGuard, 200);
         }
 
+        //public void RegisterMediaButtonEvents()
+        //{
+        //    try
+        //    {
+        //        var bluetoothReceiverClassName = Class.FromType(typeof(BluetoothReceiver)).Name;
+        //        appAudioService = (AudioManager)GetSystemService(AudioService);
+        //        appComponentName = new ComponentName(PackageName, bluetoothReceiverClassName);
+
+        //        appAudioService.RegisterMediaButtonEventReceiver(appComponentName);
+
+        //        Beep();
+
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+        //        ShowDialog(e.ToString(), "Erro");
+        //    }
+        //}
+
         public void RegisterMediaButtonEvents()
         {
             try
             {
-                var bluetoothReceiverClassName = Class.FromType(typeof(BluetoothReceiver)).Name;
-                appAudioService = (AudioManager)GetSystemService(AudioService);
-                appComponentName = new ComponentName(PackageName, bluetoothReceiverClassName);
+                mediaSession = new MediaSession(this, PackageName);
 
-                appAudioService.RegisterMediaButtonEventReceiver(appComponentName);
+                if (mediaSession == null)
+                {
+                    Toast.MakeText(this, "initMediaSession: _mediaSession = null", ToastLength.Long);
+                    return;
+                }
 
+                var intent = new Intent(this, Class.FromType(typeof(BluetoothReceiver)));
+                var pendingIntent = PendingIntent.GetBroadcast(this, 0, intent, PendingIntentFlags.UpdateCurrent);
+                mediaSession.SetMediaButtonReceiver(pendingIntent);
+
+                var mediaSessionToken = mediaSession.SessionToken;
+
+                mediaSession.SetCallback(new MediaSessionCallback(this));
+
+                mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
+
+                PlaybackState state = new PlaybackState.Builder()
+                    .SetActions(PlaybackState.ActionPlay
+                        | PlaybackState.ActionPause
+                        | PlaybackState.ActionStop 
+                        | PlaybackState.ActionSkipToNext 
+                        | PlaybackState.ActionSkipToPrevious 
+                        | PlaybackState.ActionSeekTo 
+                        | PlaybackState.ActionFastForward)
+                    .SetState(PlaybackStateCode.Stopped, PlaybackState.PlaybackPositionUnknown, 0)
+                    .Build();
+
+                mediaSession.SetPlaybackState(state);
+                mediaSession.Active = true;
                 Beep();
+                //https://code.tutsplus.com/tutorials/background-audio-in-android-with-mediasessioncompat--cms-27030
+                //https://www.programcreek.com/java-api-examples/?api=android.media.session.MediaSession
 
             }
             catch (Exception e)
@@ -410,11 +460,24 @@ namespace MusicSelect
             }
         }
 
+        //public void UnregisterMediaButtonEvents()
+        //{
+        //    try
+        //    {
+        //        //appAudioService.UnregisterMediaButtonEventReceiver(appComponentName);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
+        //        ShowDialog(e.ToString(), "Erro");
+        //    }
+        //}
+
         public void UnregisterMediaButtonEvents()
         {
             try
             {
-                appAudioService.UnregisterMediaButtonEventReceiver(appComponentName);
+                mediaSession.Active = false;
             }
             catch (Exception e)
             {
@@ -693,6 +756,65 @@ namespace MusicSelect
                 ShowDialog($"~MainActivity.Error: {e}", "Erro");
             }
         }
+    }
+
+    public class MediaSessionCallback : MediaSession.Callback
+    {
+        private MainActivity mainActivity;
+
+        public MediaSessionCallback(MainActivity mainActivity)
+        {
+            this.mainActivity = mainActivity;
+        }
+
+        public override bool OnMediaButtonEvent(Intent mediaButtonIntent)
+        {
+            Toast.MakeText(mainActivity, $"OnMediaButtonEvent: {mediaButtonIntent}", ToastLength.Long).Show();
+            return false;
+        }
+
+        public override void OnPause()
+        {
+            Toast.MakeText(mainActivity, "OnPause", ToastLength.Long).Show();
+            base.OnPlay();
+        }
+
+        public override void OnPlay()
+        {
+            Toast.MakeText(mainActivity, "OnPlay", ToastLength.Long).Show();
+            base.OnPlay();
+        }
+
+        public override void OnStop()
+        {
+            Toast.MakeText(mainActivity, "OnStop", ToastLength.Long).Show();
+            base.OnStop();
+        }
+
+        public override void OnSkipToNext()
+        {
+            Toast.MakeText(mainActivity, "OnSkipToNext", ToastLength.Long).Show();
+            base.OnSkipToNext();
+        }
+
+        public override void OnSkipToPrevious()
+        {
+            Toast.MakeText(mainActivity, "OnSkipToPrevious", ToastLength.Long).Show();
+            base.OnSkipToPrevious();
+        }
+
+        public override void OnCustomAction(string action, Bundle extras)
+        {
+            Toast.MakeText(mainActivity, $"OnCustomAction: {action}", ToastLength.Long).Show();
+            base.OnCustomAction(action, extras);
+        }
+
+        public override void OnSetRating(Rating rating)
+        {
+            Toast.MakeText(mainActivity, $"OnSetRating: {rating}", ToastLength.Long).Show();
+            base.OnSetRating(rating);
+        }
+
     }
 }
 

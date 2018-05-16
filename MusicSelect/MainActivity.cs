@@ -644,8 +644,7 @@ namespace MusicSelect
 
                 string cleanText(string input)
                 {
-                    var output = string.Concat(input.Where(c => char.IsLetter(c) || char.IsNumber(c)));
-                    return output;
+                    return string.Concat(input.Where(c => char.IsLetter(c) || char.IsNumber(c)))?.ToLowerInvariant();
                 }
 
                 if (!checkBoxNoVoice.Checked)
@@ -662,9 +661,9 @@ namespace MusicSelect
             }
         }
 
-        private async Task<string> MoreInfoAsync()
+        private Task<string> MoreInfoAsync()
         {
-            return await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
              {
                  try
                  {

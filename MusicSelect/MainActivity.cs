@@ -7,13 +7,16 @@ using Android.Graphics;
 using Android.Media;
 using Android.Media.Session;
 using Android.OS;
+using Android.Views;
 using Android.Widget;
 using Java.Lang;
+using MusicSelect.Services;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Android.AccessibilityServices.GestureDescription;
 using Exception = System.Exception;
 using Path = System.IO.Path;
 using Stream = Android.Media.Stream;
@@ -46,8 +49,8 @@ namespace MusicSelect
 
         private SeekBar seekBarTime;
         private Timer playTimer;
-        //private AudioManager appAudioService;
-        //private ComponentName appComponentName;
+
+        MediaSessionService mediaSessionService;
 
 
         private readonly string[] MusicDirs =
@@ -57,45 +60,10 @@ namespace MusicSelect
             "/storage/5800-E221/music",
         };
 
-        private MediaSession mediaSession;
-
         private int NextNotificationId()
         {
             _currentNotificationId++;
             return _currentNotificationId;
-        }
-
-        private void ShowDialog(string message, string title = "Aviso")
-        {
-            AlertDialog[] dialog = { null };
-            var builder = new AlertDialog.Builder(this);
-            builder.SetMessage(message)
-                .SetTitle(title)
-                .SetCancelable(false)
-                .SetPositiveButton("OK", (sender, args) =>
-                {
-                    dialog[0]?.Cancel();
-                });
-            dialog[0] = builder.Create();
-            dialog[0].Show();
-        }
-
-        private void ShowNotification(string title, string message)
-        {
-            var mBuilder =
-                new Notification.Builder(this)
-                .SetSmallIcon(Resource.Drawable.Icon)
-                .SetContentTitle(title)
-                .SetContentText(message);
-
-            var resultIntent = new Intent(this, typeof(MainActivity));
-            var stackBuilder = TaskStackBuilder.Create(this);
-            stackBuilder.AddParentStack(this);
-            stackBuilder.AddNextIntent(resultIntent);
-            var resultPendingIntent = stackBuilder.GetPendingIntent(1, PendingIntentFlags.UpdateCurrent);
-            mBuilder.SetContentIntent(resultPendingIntent);
-            var mNotificationManager = (NotificationManager)GetSystemService(NotificationService);
-            mNotificationManager.Notify(NextNotificationId(), mBuilder.Build());
         }
 
         private async Task ScreenOnAsync()
@@ -138,7 +106,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, $"player.Prepared.Error: {e}", ToastLength.Long).Show();
-                        ShowDialog($"player.Prepared.Error: {e}", "Erro");
+                        new DialogService(this).ShowDialog($"player.Prepared.Error: {e}", "Erro");
                     }
                 };
 
@@ -147,7 +115,7 @@ namespace MusicSelect
                     try
                     {
                         if (!checkBoxNoVoice.Checked)
-                            Beep();
+                            GeneralService.Beep();
                         if (checkBoxAutoSkip.Checked)
                             buttonListenLater.PerformClick();
                         await ScreenOnAsync();
@@ -156,7 +124,7 @@ namespace MusicSelect
                     {
                         //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
                         Toast.MakeText(this, $"player.Completion.Error: {e}", ToastLength.Long).Show();
-                        ShowDialog($"player.Completion.Error: {e}", "Erro");
+                        new DialogService(this).ShowDialog($"player.Completion.Error: {e}", "Erro");
                     }
                 };
 
@@ -166,16 +134,16 @@ namespace MusicSelect
                     {
                         try
                         {
-                            Beep();
+                            GeneralService.Beep();
                             var id3Array = args.Data.GetMetaData();
                             var id3String = System.Text.Encoding.UTF8.GetString(id3Array);
-                            ShowNotification($"{Title}:{_currentNotificationId}", $"TimedMetaDataAvailable: {id3String}");
+                            new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"TimedMetaDataAvailable: {id3String}", NextNotificationId());
                         }
                         catch (Exception e)
                         {
                             //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
                             Toast.MakeText(this, $"player.TimedMetaDataAvailable.Error: {e}", ToastLength.Long).Show();
-                            ShowDialog($"player.TimedMetaDataAvailable.Error: {e}", "Erro");
+                            new DialogService(this).ShowDialog($"player.TimedMetaDataAvailable.Error: {e}", "Erro");
                         }
                     };
                 }
@@ -184,21 +152,21 @@ namespace MusicSelect
                 {
                     try
                     {
-                        Beep();
+                        GeneralService.Beep();
                         var text = args.Text?.Text;
-                        ShowNotification($"{Title}:{_currentNotificationId}", $"TimedText: {text}");
+                        new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"TimedText: {text}", NextNotificationId());
                     }
                     catch (Exception e)
                     {
                         //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
                         Toast.MakeText(this, $"player.TimedText.Error: {e}", ToastLength.Long).Show();
-                        ShowDialog($"player.TimedText.Error: {e}", "Erro");
+                        new DialogService(this).ShowDialog($"player.TimedText.Error: {e}", "Erro");
                     }
                 };
 
                 player.Error += (sender, args) =>
                 {
-                    ShowDialog(args.ToString(), "Erro");
+                    new DialogService(this).ShowDialog(args.ToString(), "Erro");
                 };
 
                 buttonPlayPause = FindViewById<Button>(Resource.Id.buttonPlayPause);
@@ -237,7 +205,7 @@ namespace MusicSelect
                         player.PlaybackParams = newPlaybackParams;
                     }
                     else
-                        ShowDialog("Não disponível nessa versão do Android!", "Erro");
+                        new DialogService(this).ShowDialog("Não disponível nessa versão do Android!", "Erro");
                 };
 
                 buttonListenLater.Click += (sender, args) =>
@@ -252,7 +220,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                        ShowDialog(e.ToString(), "Erro");
+                        new DialogService(this).ShowDialog(e.ToString(), "Erro");
                     }
                 };
 
@@ -268,7 +236,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                        ShowDialog(e.ToString(), "Erro");
+                        new DialogService(this).ShowDialog(e.ToString(), "Erro");
                     }
                 };
 
@@ -284,7 +252,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                        ShowDialog(e.ToString(), "Erro");
+                        new DialogService(this).ShowDialog(e.ToString(), "Erro");
                     }
                 };
 
@@ -300,7 +268,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                        ShowDialog(e.ToString(), "Erro");
+                        new DialogService(this).ShowDialog(e.ToString(), "Erro");
                     }
                 };
 
@@ -316,7 +284,7 @@ namespace MusicSelect
                     catch (Exception e)
                     {
                         Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                        ShowDialog(e.ToString(), "Erro");
+                        new DialogService(this).ShowDialog(e.ToString(), "Erro");
                     }
                 };
 
@@ -337,13 +305,13 @@ namespace MusicSelect
 
                 UpdateCurrentMusic();
 
-                if (IsBluetoothHeadsetConnected())
-                    RegisterMediaButtonEvents();
+                mediaSessionService = new MediaSessionService(this);
+                mediaSessionService.RegisterMediaButtonEvents();
             }
             catch (Exception e)
             {
                 Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                ShowDialog(e.ToString(), "Erro");
+                new DialogService(this).ShowDialog(e.ToString(), "Erro");
             }
         }
 
@@ -387,105 +355,6 @@ namespace MusicSelect
             return baseFolderPath;
         }
 
-        private static void Beep()
-        {
-            var toneG = new ToneGenerator(Stream.Alarm, 100);
-            toneG.StartTone(Tone.CdmaAlertCallGuard, 200);
-        }
-
-        //public void RegisterMediaButtonEvents()
-        //{
-        //    try
-        //    {
-        //        var bluetoothReceiverClassName = Class.FromType(typeof(BluetoothReceiver)).Name;
-        //        appAudioService = (AudioManager)GetSystemService(AudioService);
-        //        appComponentName = new ComponentName(PackageName, bluetoothReceiverClassName);
-
-        //        appAudioService.RegisterMediaButtonEventReceiver(appComponentName);
-
-        //        Beep();
-
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-        //        ShowDialog(e.ToString(), "Erro");
-        //    }
-        //}
-
-        public void RegisterMediaButtonEvents()
-        {
-            try
-            {
-                mediaSession = new MediaSession(this, PackageName);
-
-                if (mediaSession == null)
-                {
-                    Toast.MakeText(this, "initMediaSession: _mediaSession = null", ToastLength.Long);
-                    return;
-                }
-
-                var intent = new Intent(this, Class.FromType(typeof(BluetoothReceiver)));
-                var pendingIntent = PendingIntent.GetBroadcast(this, 0, intent, PendingIntentFlags.UpdateCurrent);
-                mediaSession.SetMediaButtonReceiver(pendingIntent);
-
-                var mediaSessionToken = mediaSession.SessionToken;
-
-                mediaSession.SetCallback(new MediaSessionCallback(this));
-
-                mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
-
-                PlaybackState state = new PlaybackState.Builder()
-                    .SetActions(PlaybackState.ActionPlay
-                        | PlaybackState.ActionPause
-                        | PlaybackState.ActionStop 
-                        | PlaybackState.ActionSkipToNext 
-                        | PlaybackState.ActionSkipToPrevious 
-                        | PlaybackState.ActionSeekTo 
-                        | PlaybackState.ActionFastForward)
-                    .SetState(PlaybackStateCode.Stopped, PlaybackState.PlaybackPositionUnknown, 0)
-                    .Build();
-
-                mediaSession.SetPlaybackState(state);
-                mediaSession.Active = true;
-                Beep();
-                //https://code.tutsplus.com/tutorials/background-audio-in-android-with-mediasessioncompat--cms-27030
-                //https://www.programcreek.com/java-api-examples/?api=android.media.session.MediaSession
-
-            }
-            catch (Exception e)
-            {
-                Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                ShowDialog(e.ToString(), "Erro");
-            }
-        }
-
-        //public void UnregisterMediaButtonEvents()
-        //{
-        //    try
-        //    {
-        //        //appAudioService.UnregisterMediaButtonEventReceiver(appComponentName);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-        //        ShowDialog(e.ToString(), "Erro");
-        //    }
-        //}
-
-        public void UnregisterMediaButtonEvents()
-        {
-            try
-            {
-                mediaSession.Active = false;
-            }
-            catch (Exception e)
-            {
-                Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                ShowDialog(e.ToString(), "Erro");
-            }
-        }
-
         public void SelectAndNext()
         {
             buttonSelect.PerformClick();
@@ -494,11 +363,6 @@ namespace MusicSelect
         internal void DeleteAndNext()
         {
             buttonDelete.PerformClick();
-        }
-
-        internal void TooglePlayPause()
-        {
-            buttonPlayPause.PerformClick();
         }
 
         internal void Play()
@@ -538,7 +402,7 @@ namespace MusicSelect
                             catch (Exception exception)
                             {
                                 Toast.MakeText(this, exception.Message, ToastLength.Long);
-                                ShowDialog(exception.Message, "Erro");
+                                new DialogService(this).ShowDialog(exception.Message, "Erro");
                             }
                         });
                         playTimer.Change(500, Timeout.Infinite);
@@ -601,7 +465,7 @@ namespace MusicSelect
             catch (Exception e)
             {
                 Toast.MakeText(this, e.ToString(), ToastLength.Long).Show();
-                ShowDialog(e.ToString(), "Erro");
+                new DialogService(this).ShowDialog(e.ToString(), "Erro");
                 StopPlayer();
                 MoveCurrentMusic("Resolver", true);
                 UpdateCurrentMusic();
@@ -657,7 +521,31 @@ namespace MusicSelect
                 textViewDuraction.Text = TimeSpan.FromMilliseconds(player.Duration).ToString("hh':'mm':'ss");
                 textViewBitrate.Text = $"{bitrate}kbps {moreInfo}";
 
-                ShowNotification($"{Title}:{_currentNotificationId}", $"{textViewTitle.Text} - {textViewArtist.Text}");
+                sendBluetoothInfo(textViewArtist.Text, textViewTitle.Text);
+
+                new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"{textViewTitle.Text} - {textViewArtist.Text}", NextNotificationId());
+            }
+        }
+
+        private void sendBluetoothInfo(string artist, string title)
+        {
+            try
+            {
+                var audioManager = (AudioManager)GetSystemService(AudioService);
+
+                if (audioManager.BluetoothA2dpOn)
+                {
+                    var metadata = new MediaMetadata.Builder();
+
+                    metadata.PutString(MediaMetadata.MetadataKeyTitle, title);
+                    metadata.PutString(MediaMetadata.MetadataKeyDisplayTitle, title);
+                    metadata.PutString(MediaMetadata.MetadataKeyArtist, artist);
+                    metadata.PutString(MediaMetadata.MetadataKeyAlbumArtist, artist);
+                }
+            }
+            catch (Exception e)
+            {
+                Toast.MakeText(this, e.Message, ToastLength.Long).Show();
             }
         }
 
@@ -676,7 +564,7 @@ namespace MusicSelect
                  }
                  catch (Exception e)
                  {
-                     ShowDialog(e.Message, "Erro");
+                     new DialogService(this).ShowDialog(e.Message, "Erro");
                      return "";
                  }
              });
@@ -747,70 +635,103 @@ namespace MusicSelect
             try
             {
                 player?.Release();
+                mediaSessionService.UnregisterMediaButtonEvents();
             }
             catch (Exception e)
             {
                 //TODO: APAGAR ISSO CASO NÃO ESTEJA DANDO ERRO!
                 Toast.MakeText(this, $"~MainActivity.Error: {e}", ToastLength.Long).Show();
-                ShowDialog($"~MainActivity.Error: {e}", "Erro");
+                new DialogService(this).ShowDialog($"~MainActivity.Error: {e}", "Erro");
             }
         }
     }
 
     public class MediaSessionCallback : MediaSession.Callback
     {
-        private MainActivity mainActivity;
+        private Context context;
 
-        public MediaSessionCallback(MainActivity mainActivity)
+        public MediaSessionCallback(Context context)
         {
-            this.mainActivity = mainActivity;
+            this.context = context;
         }
 
         public override bool OnMediaButtonEvent(Intent mediaButtonIntent)
         {
-            Toast.MakeText(mainActivity, $"OnMediaButtonEvent: {mediaButtonIntent}", ToastLength.Long).Show();
-            return false;
+            var intentAction = mediaButtonIntent.Action;
+            if (Intent.ActionMediaButton.Equals(intentAction))
+            {
+                var @event = (KeyEvent)mediaButtonIntent.GetParcelableExtra(Intent.ExtraKeyEvent);
+
+                if (@event == null)
+                    return base.OnMediaButtonEvent(mediaButtonIntent);
+
+                var keycode = @event.KeyCode;
+                var action = @event.Action;
+                if (@event.RepeatCount == 0 && action == KeyEventActions.Down)
+                {
+                    switch (keycode)
+                    {
+                        case Keycode.MediaPlayPause:
+                            Toast.MakeText(context, $"MediaPlayPause [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
+                            break;
+                        case Keycode.MediaPause:
+                            Toast.MakeText(context, $"MediaPause [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
+                            break;
+                        case Keycode.MediaPlay:
+                            Toast.MakeText(context, $"MediaPlay [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
+                            break;
+                        default:
+                            Toast.MakeText(context, $"[keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
+                            break;
+                    }
+                }
+            }
+            return base.OnMediaButtonEvent(mediaButtonIntent);
         }
 
         public override void OnPause()
         {
-            Toast.MakeText(mainActivity, "OnPause", ToastLength.Long).Show();
+            MainActivity.CurrentActivity.Pause();
+            Toast.MakeText(context, "OnPause", ToastLength.Long).Show();
             base.OnPlay();
         }
 
         public override void OnPlay()
         {
-            Toast.MakeText(mainActivity, "OnPlay", ToastLength.Long).Show();
+            MainActivity.CurrentActivity.Play();
+            Toast.MakeText(context, "OnPlay", ToastLength.Long).Show();
             base.OnPlay();
         }
 
         public override void OnStop()
         {
-            Toast.MakeText(mainActivity, "OnStop", ToastLength.Long).Show();
+            Toast.MakeText(context, "OnStop", ToastLength.Long).Show();
             base.OnStop();
         }
 
         public override void OnSkipToNext()
         {
-            Toast.MakeText(mainActivity, "OnSkipToNext", ToastLength.Long).Show();
+            MainActivity.CurrentActivity.SelectAndNext();
+            Toast.MakeText(context, "OnSkipToNext", ToastLength.Long).Show();
             base.OnSkipToNext();
         }
 
         public override void OnSkipToPrevious()
         {
-            Toast.MakeText(mainActivity, "OnSkipToPrevious", ToastLength.Long).Show();
+            MainActivity.CurrentActivity.DeleteAndNext();
+            Toast.MakeText(context, "OnSkipToPrevious", ToastLength.Long).Show();
             base.OnSkipToPrevious();
         }
 
         public override void OnCustomAction(string action, Bundle extras)
         {
-            Toast.MakeText(mainActivity, $"OnCustomAction: {action}", ToastLength.Long).Show();
+            Toast.MakeText(context, $"OnCustomAction: {action}", ToastLength.Long).Show();
             base.OnCustomAction(action, extras);
         }
 
         public override void OnSetRating(Rating rating)
         {
-            Toast.MakeText(mainActivity, $"OnSetRating: {rating}", ToastLength.Long).Show();
+            Toast.MakeText(context, $"OnSetRating: {rating}", ToastLength.Long).Show();
             base.OnSetRating(rating);
         }
 

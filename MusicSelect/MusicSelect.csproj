@@ -66,6 +66,9 @@
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\DialogService.cs" />
+    <Compile Include="Services\GeneralService.cs" />
+    <Compile Include="Services\MediaSessionService.cs" />
     <Compile Include="TextToSpeechImplementation.cs" />
   </ItemGroup>
   <ItemGroup>

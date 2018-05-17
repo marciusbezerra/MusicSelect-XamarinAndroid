@@ -3,6 +3,7 @@ using Android.Bluetooth;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
+using MusicSelect.Services;
 using Exception = System.Exception;
 
 namespace MusicSelect
@@ -33,45 +34,17 @@ namespace MusicSelect
                     {
                         case BluetoothA2dp.ActionConnectionStateChanged:
                             {
-                                //android.bluetooth.profile.extra.STATE"
                                 var state = (State)extras.GetInt(BluetoothProfile.ExtraState);
 
                                 switch (state)
                                 {
                                     case State.Connected:
-                                        MainActivity.CurrentActivity.RegisterMediaButtonEvents();
-                                        MainActivity.CurrentActivity.Play();
+                                        Toast.MakeText(Application.Context, "Bluetooth Conectado", ToastLength.Long).Show();
                                         break;
                                     case State.Disconnected:
+                                        Toast.MakeText(Application.Context, "Bluetooth Desconectado", ToastLength.Long).Show();
                                         MainActivity.CurrentActivity.Pause();
-                                        MainActivity.CurrentActivity.UnregisterMediaButtonEvents();
                                         break;
-                                }
-                                break;
-                            }
-                        case Intent.ActionMediaButton:
-                            {
-                                var @event = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);
-                                if (@event?.Action == KeyEventActions.Up)
-                                {
-                                    switch (@event.KeyCode)
-                                    {
-                                        case Keycode.MediaNext:
-                                            MainActivity.CurrentActivity.SelectAndNext();
-                                            break;
-                                        case Keycode.MediaPrevious:
-                                            MainActivity.CurrentActivity.DeleteAndNext();
-                                            break;
-                                        case Keycode.MediaPause:
-                                            MainActivity.CurrentActivity.Pause();
-                                            break;
-                                        case Keycode.MediaPlay:
-                                            MainActivity.CurrentActivity.Play();
-                                            break;
-                                        case Keycode.MediaPlayPause:
-                                            MainActivity.CurrentActivity.TooglePlayPause();
-                                            break;
-                                    }
                                 }
                                 break;
                             }

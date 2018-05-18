@@ -4,26 +4,24 @@ using Android.Bluetooth;
 using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.Media;
-using Android.Media.Session;
 using Android.OS;
-using Android.Views;
 using Android.Widget;
-using Java.Lang;
 using MusicSelect.Services;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static Android.AccessibilityServices.GestureDescription;
 using Exception = System.Exception;
 using Path = System.IO.Path;
 using Stream = Android.Media.Stream;
 
 namespace MusicSelect
 {
-    [Activity(Label = "MusicSelect", MainLauncher = true, Icon = "@drawable/icon", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    [Activity(Label = "Music Selector", MainLauncher = true, Icon = "@drawable/icon", 
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : Activity
     {
         private string MusicDirectory;
@@ -59,7 +57,6 @@ namespace MusicSelect
             "/storage/external_SD/Music",
             "/storage/5800-E221/music",
         };
-
         private int NextNotificationId()
         {
             _currentNotificationId++;
@@ -90,6 +87,8 @@ namespace MusicSelect
                 base.OnCreate(bundle);
 
                 CurrentActivity = this;
+
+                ActionBar.SetBackgroundDrawable(new ColorDrawable(Color.Transparent));
 
                 SetContentView(Resource.Layout.Main);
 
@@ -472,7 +471,7 @@ namespace MusicSelect
             }
 
             UpdatePictureArt(false);
-            Title = "Musics (" + musicCount + ")";
+            Title = "Music Selector (" + musicCount + " música(s))";
         }
 
         private async Task UpdateScreenInfoAsync()
@@ -644,97 +643,6 @@ namespace MusicSelect
                 new DialogService(this).ShowDialog($"~MainActivity.Error: {e}", "Erro");
             }
         }
-    }
-
-    public class MediaSessionCallback : MediaSession.Callback
-    {
-        private Context context;
-
-        public MediaSessionCallback(Context context)
-        {
-            this.context = context;
-        }
-
-        public override bool OnMediaButtonEvent(Intent mediaButtonIntent)
-        {
-            var intentAction = mediaButtonIntent.Action;
-            if (Intent.ActionMediaButton.Equals(intentAction))
-            {
-                var @event = (KeyEvent)mediaButtonIntent.GetParcelableExtra(Intent.ExtraKeyEvent);
-
-                if (@event == null)
-                    return base.OnMediaButtonEvent(mediaButtonIntent);
-
-                var keycode = @event.KeyCode;
-                var action = @event.Action;
-                if (@event.RepeatCount == 0 && action == KeyEventActions.Down)
-                {
-                    switch (keycode)
-                    {
-                        case Keycode.MediaPlayPause:
-                            Toast.MakeText(context, $"MediaPlayPause [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
-                            break;
-                        case Keycode.MediaPause:
-                            Toast.MakeText(context, $"MediaPause [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
-                            break;
-                        case Keycode.MediaPlay:
-                            Toast.MakeText(context, $"MediaPlay [keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
-                            break;
-                        default:
-                            Toast.MakeText(context, $"[keycode: {keycode} - action: {action}]", ToastLength.Long).Show();
-                            break;
-                    }
-                }
-            }
-            return base.OnMediaButtonEvent(mediaButtonIntent);
-        }
-
-        public override void OnPause()
-        {
-            MainActivity.CurrentActivity.Pause();
-            Toast.MakeText(context, "OnPause", ToastLength.Long).Show();
-            base.OnPlay();
-        }
-
-        public override void OnPlay()
-        {
-            MainActivity.CurrentActivity.Play();
-            Toast.MakeText(context, "OnPlay", ToastLength.Long).Show();
-            base.OnPlay();
-        }
-
-        public override void OnStop()
-        {
-            Toast.MakeText(context, "OnStop", ToastLength.Long).Show();
-            base.OnStop();
-        }
-
-        public override void OnSkipToNext()
-        {
-            MainActivity.CurrentActivity.SelectAndNext();
-            Toast.MakeText(context, "OnSkipToNext", ToastLength.Long).Show();
-            base.OnSkipToNext();
-        }
-
-        public override void OnSkipToPrevious()
-        {
-            MainActivity.CurrentActivity.DeleteAndNext();
-            Toast.MakeText(context, "OnSkipToPrevious", ToastLength.Long).Show();
-            base.OnSkipToPrevious();
-        }
-
-        public override void OnCustomAction(string action, Bundle extras)
-        {
-            Toast.MakeText(context, $"OnCustomAction: {action}", ToastLength.Long).Show();
-            base.OnCustomAction(action, extras);
-        }
-
-        public override void OnSetRating(Rating rating)
-        {
-            Toast.MakeText(context, $"OnSetRating: {rating}", ToastLength.Long).Show();
-            base.OnSetRating(rating);
-        }
-
     }
 }
 

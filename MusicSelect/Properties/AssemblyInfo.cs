@@ -1,20 +1,20 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Android.App;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MusicSelect")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Music Selector")]
+[assembly: AssemblyDescription("Music Selector")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MusicSelect")]
+[assembly: AssemblyCompany("MCBFactory")]
+[assembly: AssemblyProduct("Music Selector")]
 [assembly: AssemblyCopyright("Copyright © MCB Factory 2017")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyTrademark("Todos os direitos reservados")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
+[assembly: Application(Theme = "@style/Theme.MusicSelectorTheme")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -1,14 +1,12 @@
 ﻿using Android.App;
 using Android.Bluetooth;
 using Android.Content;
-using Android.Views;
 using Android.Widget;
-using MusicSelect.Services;
 using Exception = System.Exception;
 
 namespace MusicSelect
 {
-    [BroadcastReceiver(Enabled = true, Exported = true, Label = "MusicSelect Bluetooth Receiver")]
+    [BroadcastReceiver(Enabled = true, Exported = true, Label = "Music Selector Bluetooth Receiver")]
     [IntentFilter(new[]
     {
         Intent.ActionBootCompleted,
@@ -39,10 +37,10 @@ namespace MusicSelect
                                 switch (state)
                                 {
                                     case State.Connected:
-                                        Toast.MakeText(Application.Context, "Bluetooth Conectado", ToastLength.Long).Show();
+                                        Toast.MakeText(Application.Context, "Conectado", ToastLength.Long).Show();
                                         break;
                                     case State.Disconnected:
-                                        Toast.MakeText(Application.Context, "Bluetooth Desconectado", ToastLength.Long).Show();
+                                        Toast.MakeText(Application.Context, "Desconectado", ToastLength.Long).Show();
                                         MainActivity.CurrentActivity.Pause();
                                         break;
                                 }

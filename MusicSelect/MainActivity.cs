@@ -20,7 +20,7 @@ using Stream = Android.Media.Stream;
 
 namespace MusicSelect
 {
-    [Activity(Label = "Music Selector", MainLauncher = true, Icon = "@drawable/icon", 
+    [Activity(Label = "Music Selector", MainLauncher = true, Icon = "@drawable/icon",
         ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : Activity
     {
@@ -80,11 +80,11 @@ namespace MusicSelect
             }
         }
 
-        protected override void OnCreate(Bundle bundle)
+        protected override void OnCreate(Bundle savedInstanceState)
         {
             try
             {
-                base.OnCreate(bundle);
+                base.OnCreate(savedInstanceState);
 
                 CurrentActivity = this;
 
@@ -458,7 +458,11 @@ namespace MusicSelect
             {
                 player.Reset();
                 player.SetDataSource(CurrentMusic);
-                player.SetAudioStreamType(Stream.Music);
+                player.SetAudioAttributes(new AudioAttributes.Builder()
+                    .SetUsage(AudioUsageKind.Media)
+                    .SetContentType(AudioContentType.Music)
+                    .SetLegacyStreamType(Stream.Music)
+                    .Build());
                 player.Prepare();
             }
             catch (Exception e)
@@ -520,27 +524,24 @@ namespace MusicSelect
                 textViewDuraction.Text = TimeSpan.FromMilliseconds(player.Duration).ToString("hh':'mm':'ss");
                 textViewBitrate.Text = $"{bitrate}kbps {moreInfo}";
 
-                sendBluetoothInfo(textViewArtist.Text, textViewTitle.Text);
+                SendBluetoothInfo(textViewArtist.Text, textViewTitle.Text);
 
                 new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"{textViewTitle.Text} - {textViewArtist.Text}", NextNotificationId());
             }
         }
 
-        private void sendBluetoothInfo(string artist, string title)
+        private void SendBluetoothInfo(string artist, string title)
         {
             try
             {
                 var audioManager = (AudioManager)GetSystemService(AudioService);
 
-                if (audioManager.BluetoothA2dpOn)
-                {
-                    var metadata = new MediaMetadata.Builder();
+                var metadata = new MediaMetadata.Builder();
 
-                    metadata.PutString(MediaMetadata.MetadataKeyTitle, title);
-                    metadata.PutString(MediaMetadata.MetadataKeyDisplayTitle, title);
-                    metadata.PutString(MediaMetadata.MetadataKeyArtist, artist);
-                    metadata.PutString(MediaMetadata.MetadataKeyAlbumArtist, artist);
-                }
+                metadata.PutString(MediaMetadata.MetadataKeyTitle, $"DEBUG_TEST1: {title}");
+                metadata.PutString(MediaMetadata.MetadataKeyDisplayTitle, $"DEBUG_TEST2: {title}");
+                metadata.PutString(MediaMetadata.MetadataKeyArtist, $"DEBUG_TEST1: {artist}");
+                metadata.PutString(MediaMetadata.MetadataKeyAlbumArtist, $"DEBUG_TEST2: {artist}");
             }
             catch (Exception e)
             {

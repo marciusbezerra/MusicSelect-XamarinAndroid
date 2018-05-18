@@ -22,20 +22,14 @@ namespace MusicSelect
             if (speaker == null)
                 speaker = new TextToSpeech(context, this);
             else
-            {
-                var p = new Dictionary<string, string>();
-                speaker.Speak(toSpeak, QueueMode.Flush, p);
-            }
+                speaker.Speak(toSpeak, QueueMode.Flush, null, null); //todo: dará erro com Android 5-
         }
 
         #region IOnInitListener implementation
         public void OnInit(OperationResult status)
         {
             if (status.Equals(OperationResult.Success))
-            {
-                var p = new Dictionary<string, string>();
-                speaker.Speak(toSpeak, QueueMode.Flush, p);
-            }
+                speaker.Speak(toSpeak, QueueMode.Flush, null, null); //todo: dará erro com Android 5-
         }
         #endregion
     }

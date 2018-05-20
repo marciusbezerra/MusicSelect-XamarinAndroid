@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="BluetoothReceiver.cs" />
     <Compile Include="MainActivity.cs" />
+    <Compile Include="Services\MediaQueueControl.cs" />
     <Compile Include="Services\MediaSessionCallback.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -22,31 +22,25 @@ namespace MusicSelect
         {
             try
             {
-                if (MainActivity.CurrentActivity != null)
+
+                var action = intent.Action;
+                var extras = intent.Extras;
+
+                switch (action)
                 {
-
-                    var action = intent.Action;
-                    var extras = intent.Extras;
-
-                    switch (action)
-                    {
-                        case BluetoothA2dp.ActionConnectionStateChanged:
+                    case BluetoothA2dp.ActionConnectionStateChanged:
+                        {
+                            switch ((State)extras.GetInt(BluetoothProfile.ExtraState))
                             {
-                                var state = (State)extras.GetInt(BluetoothProfile.ExtraState);
-
-                                switch (state)
-                                {
-                                    case State.Connected:
-                                        Toast.MakeText(Application.Context, "Conectado", ToastLength.Long).Show();
-                                        break;
-                                    case State.Disconnected:
-                                        Toast.MakeText(Application.Context, "Desconectado", ToastLength.Long).Show();
-                                        MainActivity.CurrentActivity.Pause();
-                                        break;
-                                }
-                                break;
+                                case State.Connected:
+                                    Toast.MakeText(Application.Context, "Conectado", ToastLength.Long).Show();
+                                    break;
+                                case State.Disconnected:
+                                    Toast.MakeText(Application.Context, "Desconectado", ToastLength.Long).Show();
+                                    break;
                             }
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception exception)

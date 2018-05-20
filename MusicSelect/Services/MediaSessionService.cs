@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 using Android.App;
 using Android.Content;
+using Android.Graphics;
+using Android.Media;
 using Android.Media.Session;
 using Android.OS;
-using Android.Runtime;
-using Android.Views;
 using Android.Widget;
 using Java.Lang;
 
@@ -16,49 +12,40 @@ namespace MusicSelect.Services
 {
     public class MediaSessionService
     {
-        private readonly Context context;
-        private MediaSession mediaSession;
+        private readonly Context _context;
+        private MediaSession _mediaSession;
+        private MediaQueueControl _mediaQueue;
 
-        public MediaSessionService(Context context)
+        public MediaSessionService(Context context, MediaQueueControl mediaQueue)
         {
-            this.context = context;
+            _context = context;
+            _mediaQueue = mediaQueue;
         }
 
-        public void RegisterMediaButtonEvents()
+        public void NewMediaSession()
         {
             try
             {
-                mediaSession = new MediaSession(context, context.PackageName);
+                _mediaSession = new MediaSession(_context, _context.PackageName);
 
-                if (mediaSession == null)
+                if (_mediaSession == null)
                 {
-                    Toast.MakeText(context, "initMediaSession: _mediaSession = null", ToastLength.Long).Show();
+                    Toast.MakeText(_context, "initMediaSession: _mediaSession = null", ToastLength.Long).Show();
                     return;
                 }
 
-                var intent = new Intent(context, Class.FromType(typeof(BluetoothReceiver)));
-                var pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, PendingIntentFlags.UpdateCurrent);
-                mediaSession.SetMediaButtonReceiver(pendingIntent);
+                var intent = new Intent(_context, Class.FromType(typeof(BluetoothReceiver)));
+                var pendingIntent = PendingIntent.GetBroadcast(_context, 0, intent, PendingIntentFlags.UpdateCurrent);
+                _mediaSession.SetMediaButtonReceiver(pendingIntent);
 
-                var mediaSessionToken = mediaSession.SessionToken;
+                var mediaSessionToken = _mediaSession.SessionToken;
 
-                mediaSession.SetCallback(new MediaSessionCallback(context));
+                _mediaSession.SetCallback(new MediaSessionCallback(_context, _mediaQueue));
 
-                mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
+                _mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
 
-                PlaybackState state = new PlaybackState.Builder()
-                    .SetActions(PlaybackState.ActionPlay
-                        | PlaybackState.ActionPause
-                        | PlaybackState.ActionStop
-                        | PlaybackState.ActionSkipToNext
-                        | PlaybackState.ActionSkipToPrevious
-                        | PlaybackState.ActionSeekTo
-                        | PlaybackState.ActionFastForward)
-                    .SetState(PlaybackStateCode.Stopped, PlaybackState.PlaybackPositionUnknown, 0)
-                    .Build();
+                SetState(_mediaQueue.PlayerIsPlaying ? PlaybackStateCode.Playing : PlaybackStateCode.Stopped, _mediaQueue.PlayerPosition);
 
-                mediaSession.SetPlaybackState(state);
-                mediaSession.Active = true;
                 GeneralService.Beep();
                 //https://code.tutsplus.com/tutorials/background-audio-in-android-with-mediasessioncompat--cms-27030
                 //https://www.programcreek.com/java-api-examples/?api=android.media.session.MediaSession
@@ -66,21 +53,58 @@ namespace MusicSelect.Services
             }
             catch (System.Exception e)
             {
-                Toast.MakeText(context, e.ToString(), ToastLength.Long).Show();
-                new DialogService(context).ShowDialog(e.ToString(), "Erro");
+                Toast.MakeText(_context, e.ToString(), ToastLength.Long).Show();
+                new DialogService(_context).ShowDialog(e.ToString(), "Erro");
             }
         }
 
-        public void UnregisterMediaButtonEvents()
+        public void ReleaseMediaSession()
         {
             try
             {
-                mediaSession.Active = false;
+                _mediaSession.Active = false;
             }
             catch (System.Exception e)
             {
-                Toast.MakeText(context, e.ToString(), ToastLength.Long).Show();
-                new DialogService(context).ShowDialog(e.ToString(), "Erro");
+                Toast.MakeText(_context, e.ToString(), ToastLength.Long).Show();
+                new DialogService(_context).ShowDialog(e.ToString(), "Erro");
+            }
+        }
+
+        public void SetState(PlaybackStateCode stateCode, long playPosition) {
+            PlaybackState state = new PlaybackState.Builder()
+                .SetActions(PlaybackState.ActionPlay
+                    | PlaybackState.ActionPause
+                    | PlaybackState.ActionStop
+                    | PlaybackState.ActionSkipToNext
+                    | PlaybackState.ActionSkipToPrevious
+                    | PlaybackState.ActionSeekTo
+                    | PlaybackState.ActionFastForward
+                    | PlaybackState.ActionPlayFromMediaId)
+                .SetState(stateCode, playPosition, 1.0f)
+                .Build();
+
+            SetMediaSessionMetadata(_mediaQueue.CurrentMusicArtist, _mediaQueue.CurrentMusicTitle, _mediaQueue.CurrentMusicAlbumArt);
+
+            _mediaSession.SetPlaybackState(state);
+            _mediaSession.Active = true; //TODO: Isso aqui não poderia ficar no final do NewMediaSession
+        }
+
+        public void SetMediaSessionMetadata(string artist, string title, Bitmap albumArt)
+        {
+            //https://www.b4x.com/android/forum/threads/send-text-display-bluetooth.68503/
+            //https://stackoverflow.com/questions/30942054/media-session-compat-not-showing-lockscreen-controls-on-pre-lollipop
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
+            {
+                var metadataBuilder = new MediaMetadata.Builder();
+
+                metadataBuilder.PutString(MediaMetadata.MetadataKeyTitle, title);
+                metadataBuilder.PutString(MediaMetadata.MetadataKeyArtist, artist);
+
+                if (albumArt != null)
+                    metadataBuilder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, albumArt);
+
+                _mediaSession.SetMetadata(metadataBuilder.Build());
             }
         }
 

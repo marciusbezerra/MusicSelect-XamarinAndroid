@@ -10,11 +10,13 @@ namespace MusicSelect.Services
 
     public class MediaSessionCallback : MediaSession.Callback
     {
-        private Context context;
+        private readonly Context context;
+        private readonly MediaQueueControl _mediaQueue;
 
-        public MediaSessionCallback(Context context)
+        public MediaSessionCallback(Context context, MediaQueueControl mediaQueue)
         {
             this.context = context;
+            _mediaQueue = mediaQueue;
         }
 
         public override bool OnMediaButtonEvent(Intent mediaButtonIntent)
@@ -45,25 +47,25 @@ namespace MusicSelect.Services
 
         public override void OnPause()
         {
-            MainActivity.CurrentActivity.Pause();
+            _mediaQueue.Pause();
             base.OnPlay();
         }
 
         public override void OnPlay()
         {
-            MainActivity.CurrentActivity.Play();
+            _mediaQueue.PlayPause();
             base.OnPlay();
         }
 
-        public override void OnSkipToNext()
+        public override async void OnSkipToNext()
         {
-            MainActivity.CurrentActivity.SelectAndNext();
+            await _mediaQueue.StopMoveAndStartPlayerAsync("Selecionadas", false);
             base.OnSkipToNext();
         }
 
-        public override void OnSkipToPrevious()
+        public override async void OnSkipToPrevious()
         {
-            MainActivity.CurrentActivity.DeleteAndNext();
+            await _mediaQueue.StopMoveAndStartPlayerAsync("Excluir", true);
             base.OnSkipToPrevious();
         }
 

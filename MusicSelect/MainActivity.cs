@@ -1,12 +1,16 @@
 ﻿using Android;
 using Android.App;
+using Android.Bluetooth;
+using Android.Content;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.OS;
+using Android.Text;
 using Android.Widget;
 using MusicSelect.Services;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Exception = System.Exception;
@@ -33,16 +37,37 @@ namespace MusicSelect
         private Button buttonResolve;
         private Button buttonDelete;
         private Button buttonSelect;
+        private TextView textConnectionStatus;
 
         private SeekBar seekBarTime;
 
         MediaQueueControl _mediaQueue;
         MediaSessionService _mediaSessionService;
 
+        private static MainActivity instance;
+
         private int NextNotificationId()
         {
             _currentNotificationId++;
             return _currentNotificationId;
+        }
+
+        internal void SetConnected()
+        {
+            RunOnUiThread(() =>
+            {
+                textConnectionStatus.Text = "Conectado!";
+                textConnectionStatus.SetTextColor(Color.Green);
+            });
+        }
+
+        internal void SetDisconnected()
+        {
+            RunOnUiThread(() =>
+            {
+                textConnectionStatus.Text = "Desconectado";
+                textConnectionStatus.SetTextColor(Color.Red);
+            });
         }
 
         private async Task ScreenOnAsync()
@@ -54,12 +79,43 @@ namespace MusicSelect
             wakeLock.Release();
         }
 
+        public static bool IsBluetoothHeadsetConnected()
+        {
+            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.DefaultAdapter;
+            return mBluetoothAdapter != null && mBluetoothAdapter.IsEnabled
+                    && mBluetoothAdapter.GetProfileConnectionState(ProfileType.Headset) == ProfileState.Connected;
+        }
+
+        private PendingIntent CreateShareAction(string artist, string title, string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                Intent intentShareFile = new Intent(Intent.ActionSend);
+                intentShareFile.SetType("audio/mp3");
+                intentShareFile.PutExtra(Intent.ExtraStream, Android.Net.Uri.Parse(filePath));
+                intentShareFile.PutExtra(Intent.ExtraSubject, "Escute essa música...");
+                intentShareFile.PutExtra(Intent.ExtraText, $"{artist} - {title}");
+                intentShareFile.AddFlags(ActivityFlags.GrantPersistableUriPermission);
+                return PendingIntent.GetActivity(this, 0, intentShareFile,
+                                    PendingIntentFlags.CancelCurrent);
+            }
+            return null;
+        }
+
+        public static MainActivity GetInstance()
+        {
+            return instance;
+        }
+
         protected override async void OnCreate(Bundle savedInstanceState)
         {
             try
             {
                 base.OnCreate(savedInstanceState);
-                ActionBar.SetBackgroundDrawable(new ColorDrawable(Color.Transparent));
+
+                instance = this;
+
+                ActionBar.SetBackgroundDrawable(new ColorDrawable(Color.ParseColor("#80000000")));
                 SetContentView(Resource.Layout.Main);
                 GetLocationPermission();
 
@@ -87,12 +143,35 @@ namespace MusicSelect
                         if (!checkBoxNoVoice.Checked)
                             new TextToSpeechImplementation(this).Speak($"{cleanText(textViewArtist.Text)}! {cleanText(textViewTitle.Text)}!!");
 
-                        new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"{textViewTitle.Text} - {textViewArtist.Text}", NextNotificationId());
+                        new DialogService(this).ShowNotification(
+                            NextNotificationId(), textViewArtist.Text, textViewTitle.Text,
+                            _mediaQueue.CurrentMusicAlbumArt,
+                            new Notification.Action(Resource.Drawable.play_pause, "Compartilhar",
+                                CreateShareAction(textViewArtist.Text, textViewTitle.Text, _mediaQueue.CurrentMusicFilename)));
                     }
                     catch (Exception e)
                     {
                         Toast.MakeText(this, $"PlayerPrepared.Error: {e}", ToastLength.Long).Show();
                         new DialogService(this).ShowDialog($"PlayerPrepared.Error: {e}", "Erro");
+                    }
+                };
+
+                _mediaQueue.AfterMoveFile += (newFolder, newFilename) =>
+                {
+                    try
+                    {
+                        new DialogService(this).ShowNotification(
+                                        _currentNotificationId, _mediaQueue.CurrentMusicArtist,
+                                        $"{_mediaQueue.CurrentMusicTitle} (*{newFolder.ToUpper()}*)",
+                                        _mediaQueue.CurrentMusicAlbumArt,
+                                        new Notification.Action(Resource.Drawable.play_pause,
+                                            "Compartilhar",
+                                            CreateShareAction(_mediaQueue.CurrentMusicArtist, _mediaQueue.CurrentMusicTitle,
+                                            newFilename)));
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.MakeText(this, $"AfterMoveFile.Error: {e}", ToastLength.Long).Show();
                     }
                 };
 
@@ -120,7 +199,7 @@ namespace MusicSelect
                         GeneralService.Beep();
                         var id3Array = args.Data.GetMetaData();
                         var id3String = System.Text.Encoding.UTF8.GetString(id3Array);
-                        new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"TimedMetaDataAvailable: {id3String}", NextNotificationId());
+                        new DialogService(this).ShowDialog($"TimedMetaDataAvailable: {id3String}");
 
                     };
                 }
@@ -131,7 +210,7 @@ namespace MusicSelect
                     {
                         GeneralService.Beep();
                         var text = args.Text?.Text;
-                        new DialogService(this).ShowNotification($"{Title}:{_currentNotificationId}", $"TimedText: {text}", NextNotificationId());
+                        new DialogService(this).ShowDialog($"TimedText: {text}");
                     }
                     catch (Exception e)
                     {
@@ -178,6 +257,7 @@ namespace MusicSelect
                 checkBoxAutoSkip = FindViewById<CheckBox>(Resource.Id.checkBoxAutoSkip);
                 checkBoxNoVoice = FindViewById<CheckBox>(Resource.Id.checkBoxNoVoice);
                 seekBarTime = FindViewById<SeekBar>(Resource.Id.seekBarTime);
+                textConnectionStatus = FindViewById<TextView>(Resource.Id.textConnectionStatus);
 
                 buttonPlayPause.Click += (sender, args) =>
                 {
@@ -278,6 +358,11 @@ namespace MusicSelect
 
                 _mediaQueue.PlayerBeforeStart += () => seekBarTime.Max = _mediaQueue.CurrentMusicDuration;
                 _mediaQueue.PlayerAfterPrepare += () => Title = $"Music Selector {_mediaQueue.MusicCount} música(s))";
+
+                if (IsBluetoothHeadsetConnected())
+                    SetConnected();
+                else
+                    SetDisconnected();
 
                 await _mediaQueue.PrepareNextMusicAsync();
             }

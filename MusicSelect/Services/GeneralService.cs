@@ -6,7 +6,7 @@ namespace MusicSelect.Services
     {
         public static void Beep()
         {
-            var toneG = new ToneGenerator(Stream.Alarm, 100);
+            var toneG = new ToneGenerator(Stream.Alarm, 50);
             toneG.StartTone(Tone.CdmaEmergencyRingback, 200);
         }
     }

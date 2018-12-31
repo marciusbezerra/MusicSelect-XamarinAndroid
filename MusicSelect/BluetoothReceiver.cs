@@ -34,9 +34,11 @@ namespace MusicSelect
                             {
                                 case State.Connected:
                                     Toast.MakeText(Application.Context, "Conectado", ToastLength.Long).Show();
+                                    MainActivity.GetInstance()?.SetConnected();
                                     break;
                                 case State.Disconnected:
                                     Toast.MakeText(Application.Context, "Desconectado", ToastLength.Long).Show();
+                                    MainActivity.GetInstance()?.SetDisconnected();
                                     break;
                             }
                             break;

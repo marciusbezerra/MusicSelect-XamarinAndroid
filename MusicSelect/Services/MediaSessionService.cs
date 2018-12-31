@@ -34,7 +34,7 @@ namespace MusicSelect.Services
                     return;
                 }
 
-                var intent = new Intent(_context, Class.FromType(typeof(BluetoothReceiver)));
+                var intent = new Intent(_context, typeof(BluetoothReceiver));
                 var pendingIntent = PendingIntent.GetBroadcast(_context, 0, intent, PendingIntentFlags.UpdateCurrent);
                 _mediaSession.SetMediaButtonReceiver(pendingIntent);
 

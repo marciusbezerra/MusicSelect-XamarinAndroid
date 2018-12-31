@@ -1,6 +1,8 @@
 ﻿
 using Android.App;
 using Android.Content;
+using Android.Graphics;
+using System;
 
 namespace MusicSelect.Services
 {
@@ -28,22 +30,32 @@ namespace MusicSelect.Services
             dialog[0].Show();
         }
 
-        public void ShowNotification(string title, string message, int notificationId)
+        public void ShowNotification(int notificationId, string title, string message, Bitmap largeIcon, params Notification.Action[] actions)
         {
-            var mBuilder =
+            var notificationBuilder =
                 new Notification.Builder(context)
                 .SetSmallIcon(Resource.Drawable.Icon)
                 .SetContentTitle(title)
+                .SetActions(actions)
                 .SetContentText(message);
+
+            if (largeIcon != null)
+                notificationBuilder.SetLargeIcon(largeIcon);
 
             var resultIntent = new Intent(context, typeof(MainActivity));
             var stackBuilder = TaskStackBuilder.Create(context);
             stackBuilder.AddParentStack(context.Class);
             stackBuilder.AddNextIntent(resultIntent);
             var resultPendingIntent = stackBuilder.GetPendingIntent(1, PendingIntentFlags.UpdateCurrent);
-            mBuilder.SetContentIntent(resultPendingIntent);
+            notificationBuilder.SetContentIntent(resultPendingIntent);
             var mNotificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
-            mNotificationManager.Notify(notificationId, mBuilder.Build());
+            mNotificationManager.Notify(notificationId, notificationBuilder.Build());
         }
+    }
+
+    public class NotificationAction
+    {
+        public string ActionTitle { get; set; }
+        public Action TouchAction { get; set; }
     }
 }

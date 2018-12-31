@@ -27,6 +27,7 @@ namespace MusicSelect.Services
         public delegate void TimerPlayingDelegate(int currentPosition);
         public delegate void PlayerBeforeStartDelegate();
         public delegate void PlayerAfterPrepareDelegate();
+        public delegate void AfterMoveFileDelegate(string newFolder, string newFilename);
 
         public event PlayerPreparedDelegate PlayerPrepared;
         public event PlayerCompletionDelegate PlayerCompletion;
@@ -36,6 +37,7 @@ namespace MusicSelect.Services
         public event TimerPlayingDelegate TimerPlaying;
         public event PlayerBeforeStartDelegate PlayerBeforeStart;
         public event PlayerAfterPrepareDelegate PlayerAfterPrepare;
+        public event AfterMoveFileDelegate AfterMoveFile;
 
         private readonly string[] MusicDirs =
         {
@@ -145,9 +147,9 @@ namespace MusicSelect.Services
                 if (File.Exists(toFilename))
                     toFilename = System.IO.Path.Combine(toFolder, $"{Guid.NewGuid()}_{System.IO.Path.GetFileName(CurrentMusicFilename)}");
                 File.Move(CurrentMusicFilename, toFilename);
+                AfterMoveFile?.Invoke(newFolder, toFilename);
                 if (hiddenFolder)
                     CreateNoMediafile(toFolder);
-                return;
             }
         }
 
